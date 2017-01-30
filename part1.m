@@ -22,26 +22,40 @@ function [r, p, y] = part1( target, link_length, min_roll, max_roll, min_pitch, 
 % 	  0 0 0];
 x0 = [    2.2928  -13.5518   -1.3551;
     0.9862   -9.7395   -2.5839;
-   -0.0990   -6.8811   1.2320;
+   -0.0990   -6.8811   -1.2320;
    -1.4951   -2.7670   -0.2013];
 
+% x0 = [    2.2928  -13.5518   -1.3551;
+%     0.9862   -9.7395   -2.5839;
+%    -0.0990   -6.8811   1.2320;
+%    -1.4951   -2.7670   -0.2013];
 
 
 
-lb = [min_roll, min_pitch, min_yaw]; 
-ub = [max_roll, max_pitch, max_yaw]; 
+if (isempty(min_roll)) 
+    lb = []; 
+    ub = []; 
+else
+    lb = [min_roll, min_pitch, min_yaw]; 
+    ub = [max_roll, max_pitch, max_yaw]; 
+end
 
 fmin_fun = @(x) obj_fun(x,target,link_length);
 constraint_fun = @(x) deal((collision_check(x,link_length,obstacles)),[]);
-
-x = fmincon(fmin_fun,x0,[],[],[],[],lb,ub,constraint_fun)
-
+options = optimoptions('fmincon','Algorithm','interior-point');
+tic
+x = fmincon(fmin_fun,x0,[],[],[],[],lb,ub,constraint_fun,options)
+toc
 
 
 visualize_arm(x,link_length);
-[X,Y,Z] = sphere;
-surf(obstacles(1,4)*X+obstacles(1,1),obstacles(1,4)*Y+obstacles(1,2),obstacles(1,4)*Z+obstacles(1,3))
-surf(obstacles(2,4)*X+obstacles(2,1),obstacles(2,4)*Y+obstacles(2,2),obstacles(2,4)*Z+obstacles(2,3))
+for i = 1:size(obstacles,1);
+    [X,Y,Z] = sphere;
+    surf(obstacles(i,4)*X+obstacles(i,1),obstacles(i,4)*Y+obstacles(i,2),obstacles(i,4)*Z+obstacles(i,3))
+end
+% [X,Y,Z] = sphere;
+% surf(obstacles(1,4)*X+obstacles(1,1),obstacles(1,4)*Y+obstacles(1,2),obstacles(1,4)*Z+obstacles(1,3))
+% surf(obstacles(2,4)*X+obstacles(2,1),obstacles(2,4)*Y+obstacles(2,2),obstacles(2,4)*Z+obstacles(2,3))
 
 
 r = x(:,1);

@@ -22,9 +22,13 @@ x0 = [0 0 0;
 	  0 0 0;
 	  0 0 0];
 
-
-lb = [min_roll, min_pitch, min_yaw]; 
-ub = [max_roll, max_pitch, max_yaw]; 
+if (isempty(min_roll)) 
+    lb = []; 
+    ub = []; 
+else
+    lb = [min_roll, min_pitch, min_yaw]; 
+    ub = [max_roll, max_pitch, max_yaw]; 
+end
 
 tic
 J = getJacobian(link_length); 
@@ -34,7 +38,7 @@ fmin_fun = @(x) obj_fun2(x,target,link_length,J);
 % fmin_fun = @(x) obj_fun(x,goal_pose,link_length);
 
 constraint_fun = @(x) deal((collision_check(x,link_length,obstacles)),[]);
-options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Algorithm','interior-point');
+options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Algorithm','active-set');
 
 tic
 x = fmincon(fmin_fun,x0,[],[],[],[],lb,ub,constraint_fun,options)
@@ -42,8 +46,10 @@ toc
 
 
 visualize_arm(x,link_length);
-[X,Y,Z] = sphere;
-surf(obstacles(4)*X+obstacles(1),obstacles(4)*Y+obstacles(2),obstacles(4)*Z+obstacles(3))
+for i = 1:size(obstacles,1);
+    [X,Y,Z] = sphere;
+    surf(obstacles(i,4)*X+obstacles(i,1),obstacles(i,4)*Y+obstacles(i,2),obstacles(i,4)*Z+obstacles(i,3))
+end
 
 r = x(:,1);
 p = x(:,2);
