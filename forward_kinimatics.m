@@ -18,10 +18,14 @@ function [x,points] = forward_kinimatics(r,p,y,link_length)
 		% R = (Rx*Ry*Rz);
 		% R = R';
 		% x = x + R*[link_length(i);0;0];
+
 		H = H*([R, R*[link_length(i);0;0]; 0 0 0 1]);
 		% H = H_new*H;
 		x = H*[0;0;0;1];
 		points = [points;x'];
 	end
+	rotm = H(1:3,1:3);
 	x = x(1:3);
+	q = rotm2quat(rotm);
+	x = [x;q'];
 end
