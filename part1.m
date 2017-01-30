@@ -1,4 +1,4 @@
-function [r, p, y] = part2( target, link_length, min_roll, max_roll, min_pitch, max_pitch, min_yaw, max_yaw, obstacles )
+function [r, p, y] = part1( target, link_length, min_roll, max_roll, min_pitch, max_pitch, min_yaw, max_yaw, obstacles )
 %% Function that uses optimization to do inverse kinematics for a snake robot
 
 %%Outputs 
@@ -16,34 +16,33 @@ function [r, p, y] = part2( target, link_length, min_roll, max_roll, min_pitch, 
 
 % Your code goes here.
 
+% x0 = [0 0 0;
+% 	  0 0 0;
+% 	  0 0 0;
+% 	  0 0 0];
+x0 = [    2.2928  -13.5518   -1.3551;
+    0.9862   -9.7395   -2.5839;
+   -0.0990   -6.8811   1.2320;
+   -1.4951   -2.7670   -0.2013];
 
-x0 = [0 0 0;
-	  0 0 0;
-	  0 0 0;
-	  0 0 0];
+
 
 
 lb = [min_roll, min_pitch, min_yaw]; 
 ub = [max_roll, max_pitch, max_yaw]; 
 
-tic
-J = getJacobian(link_length); 
-toc
-
-fmin_fun = @(x) obj_fun2(x,target,link_length,J);
-% fmin_fun = @(x) obj_fun(x,goal_pose,link_length);
-
+fmin_fun = @(x) obj_fun(x,target,link_length);
 constraint_fun = @(x) deal((collision_check(x,link_length,obstacles)),[]);
-options = optimoptions('fmincon','SpecifyObjectiveGradient',true,'Algorithm','interior-point');
 
-tic
-x = fmincon(fmin_fun,x0,[],[],[],[],lb,ub,constraint_fun,options)
-toc
+x = fmincon(fmin_fun,x0,[],[],[],[],lb,ub,constraint_fun)
+
 
 
 visualize_arm(x,link_length);
 [X,Y,Z] = sphere;
-surf(obstacles(4)*X+obstacles(1),obstacles(4)*Y+obstacles(2),obstacles(4)*Z+obstacles(3))
+surf(obstacles(1,4)*X+obstacles(1,1),obstacles(1,4)*Y+obstacles(1,2),obstacles(1,4)*Z+obstacles(1,3))
+surf(obstacles(2,4)*X+obstacles(2,1),obstacles(2,4)*Y+obstacles(2,2),obstacles(2,4)*Z+obstacles(2,3))
+
 
 r = x(:,1);
 p = x(:,2);
